@@ -1,5 +1,4 @@
-void RainbowWave3() {
-    float delayTime, delayMin, delayMax;
+void RainbowWave() {
 
     delayTime = 500;
     delayMin = 1;
@@ -8,12 +7,9 @@ void RainbowWave3() {
     multiplierBackwards = 1.02;
     isForwards = true; 
 
-    int next = 0;
-    char color[12] =  {'B', 'C', 'D', 'E',
-                        'F', 'G', 'H', 'I',
-                        'J', 'K', 'L'};
-    char pattern[10] =  {'0', '0', '0', '0', '0', 
-                            '0', '0', '0', '0', '0'};
+    for(int x = 0; x<=9; x++) {
+        pattern[x] = 0;
+    }
 
     while (Serial.available()==0) {
 
@@ -45,5 +41,3 @@ void RainbowWave3() {
         if(delayTime<=delayMin) {isForwards = false;}
     }
 }
-
-

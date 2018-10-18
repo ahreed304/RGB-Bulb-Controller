@@ -12,6 +12,14 @@ int len;
 
 bool isForwards;
 float multiplier, multiplierForwards, multiplierBackwards;
+float delayTime, delayMin, delayMax;
+
+int next = 0;
+    char color[12] =  {'B', 'C', 'D', 'E',
+                        'F', 'G', 'H', 'I',
+                        'J', 'K', 'L'};
+    char pattern[10] =  {'0', '0', '0', '0', '0', 
+                            '0', '0', '0', '0', '0'};
 
 void setup() {
   Serial.begin(9600);
@@ -32,9 +40,10 @@ void loop() {
         RainbowWave();   
       break;
       case 'b':
-        RainbowWave3();
+        RandomColor();
         break;
-      case 'c': 
+      case 'c':
+        RandomColorCycle(); 
       break;
     }
     radio.write(&dataOut, len);  
