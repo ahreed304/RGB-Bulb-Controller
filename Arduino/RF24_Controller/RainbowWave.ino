@@ -5,9 +5,10 @@ void RainbowWave() {
     delayMax = 1000;
     multiplierForwards = .98;
     multiplierBackwards = 1.02;
-    isForwards = true; 
+    isForwards = true;
+    next = random(0, 11); 
 
-    for(int x = 0; x<=9; x++) {
+    for(int x = 0; x<sizeof(pattern); x++) {
         pattern[x] = 0;
     }
 

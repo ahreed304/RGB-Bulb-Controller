@@ -5,6 +5,8 @@ switch(msg.payload) {
 	case     1: command = 'a'; break;
 	case     2: command = 'b'; break;
 	case     3: command = 'c'; break;
+	case     4: command = 'd'; break;
+	case     5: command = 'e'; break;
 	
 	case    25: command = 'W'; break;
 	case    50: command = 'X'; break;
