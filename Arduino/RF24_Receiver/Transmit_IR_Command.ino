@@ -19,9 +19,9 @@ void transmitIRCommand()
                     break;
           case 'Z': for(int y = 0; y<3; y++)  {irsend.sendNEC(IRCodes[15], 32);}
                     break;
-        }
-      }
-    } 
-  }
-}
+        }//end switch
+      }//end else statement
+    }//end if statement
+  }//end for loop
+}//end method
   
