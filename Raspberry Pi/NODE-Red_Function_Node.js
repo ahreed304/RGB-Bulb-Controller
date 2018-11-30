@@ -1,3 +1,7 @@
+//This code receives voice commands from Amazon Alexa, interprests those commands, and outputs them to an Arduino via the USB serial port
+//It runs inside of Node-Red, an application installed on my Raspberry Pi.
+//This code works with the Alexa-Home node.  It is temporary.  Better code will be written when better nodes become available
+
 var address = msg.topic;
 var command = '0';
 

@@ -1,5 +1,18 @@
+//These functions make color-changing waves sweep across the house.  
+
+//Code is fully-functional but redundant and unfinished.  
+
+//Comments will be added when code is refactored.  
+
 void RainbowWave()
 {
+  float delayTime, delayMin, delayMax;
+  bool isFaster, isForward, isForwardColor;
+  float multiplier, multiplierFaster, multiplierSlower;
+  int next, prev;
+  char pattern[defaultCommandLength];
+  memcpy(pattern, defaultCommand, defaultCommandLength);
+  int patternLength = (sizeof(pattern));
 
   delayTime = 500;
   delayMin = 1;
@@ -15,94 +28,103 @@ void RainbowWave()
 
   while (Serial.available()==0)
   {
-    if(isForward == true) {ForwardWave();}
-    else  {BackwardWave();}
-      
-  }
-}//end method
-
-void ForwardWave()  
-{
-  if(isFaster==true) {multiplier = multiplierFaster;}
-  else {multiplier = multiplierSlower;}
+    if(isForward == true) 
+      {
+        if(isFaster==true) {multiplier = multiplierFaster;}
+        else {multiplier = multiplierSlower;}
         
-  pattern[0] = color[next];
-  radio.write(pattern, sizeof(pattern)); delay(delayTime);
-  delayTime = delayTime*multiplier;
-
-  pattern[1] = color[next];
-  pattern[5] = color[next];
-  radio.write(pattern, sizeof(pattern)); delay(delayTime);
-  delayTime = delayTime*multiplier;
-
-  pattern[2] = color[next];
-  pattern[6] = color[next];
-  pattern[8] = color[next];
-  radio.write(pattern, sizeof(pattern)); delay(delayTime);
-  delayTime = delayTime*multiplier;
-
-  pattern[3] = color[next];
-  pattern[7] = color[next];
-  radio.write(pattern, sizeof(pattern)); delay(delayTime*5);
-  delayTime = delayTime*multiplier;
-
-  if (isForwardColor==true)
-  {
-    if(next>=11) {next = 1;}
-    else {next++;}
+        pattern[0] = color[next];
+        radio.write(pattern, sizeof(pattern)); delay(delayTime);
+        delayTime = delayTime*multiplier;
+      
+        pattern[1] = color[next];
+        pattern[5] = color[next];
+        radio.write(pattern, sizeof(pattern)); delay(delayTime);
+        delayTime = delayTime*multiplier;
+      
+        pattern[2] = color[next];
+        pattern[6] = color[next];
+        pattern[8] = color[next];
+        radio.write(pattern, sizeof(pattern)); delay(delayTime);
+        delayTime = delayTime*multiplier;
+      
+        pattern[3] = color[next];
+        pattern[7] = color[next];
+        radio.write(pattern, sizeof(pattern)); delay(delayTime*5);
+        delayTime = delayTime*multiplier;
+      
+        if (isForwardColor==true)
+        {
+          if(next>=11) {next = 1;}
+          else {next++;}
+        }
+        else
+        {
+          if(next<=1) {next = 11;}
+          else {next--;}
+        }
+      
+        if(delayTime>=delayMax) {isFaster = true;}
+        if(delayTime<=delayMin) {isFaster = false;}
+      }//-----end forward wave
+    else  
+    {
+      if(isFaster==true) {multiplier = multiplierFaster;}
+      else {multiplier = multiplierSlower;}
+    
+      pattern[3] = color[next];
+      pattern[7] = color[next];
+      radio.write(pattern, sizeof(pattern)); delay(delayTime);
+      delayTime = delayTime*multiplier;
+    
+      pattern[2] = color[next];
+      pattern[6] = color[next];
+      pattern[8] = color[next];
+      radio.write(pattern, sizeof(pattern)); delay(delayTime);
+      delayTime = delayTime*multiplier;
+    
+      pattern[1] = color[next];
+      pattern[5] = color[next];
+      radio.write(pattern, sizeof(pattern)); delay(delayTime);
+      delayTime = delayTime*multiplier;
+            
+      pattern[0] = color[next];
+      radio.write(pattern, sizeof(pattern)); delay(delayTime*5);
+      delayTime = delayTime*multiplier;
+    
+      if (isForwardColor==true)
+      {
+        if(next>=11) {next = 1;}
+        else {next++;}
+      }
+      else
+      {
+        if(next<=1) {next = 11;}
+        else {next--;}
+      }
+    
+      if(delayTime>=delayMax) {isFaster = true;}
+      if(delayTime<=delayMin) {isFaster = false;}
+    }//-----end backward wave
   }
-  else
-  {
-    if(next<=1) {next = 11;}
-    else {next--;}
-  }
-
-  if(delayTime>=delayMax) {isFaster = true;}
-  if(delayTime<=delayMin) {isFaster = false;}
 }//end method
 
 void BackwardWave()  
 {
-  if(isFaster==true) {multiplier = multiplierFaster;}
-  else {multiplier = multiplierSlower;}
-
-  pattern[3] = color[next];
-  pattern[7] = color[next];
-  radio.write(pattern, sizeof(pattern)); delay(delayTime);
-  delayTime = delayTime*multiplier;
-
-  pattern[2] = color[next];
-  pattern[6] = color[next];
-  pattern[8] = color[next];
-  radio.write(pattern, sizeof(pattern)); delay(delayTime);
-  delayTime = delayTime*multiplier;
-
-  pattern[1] = color[next];
-  pattern[5] = color[next];
-  radio.write(pattern, sizeof(pattern)); delay(delayTime);
-  delayTime = delayTime*multiplier;
-        
-  pattern[0] = color[next];
-  radio.write(pattern, sizeof(pattern)); delay(delayTime*5);
-  delayTime = delayTime*multiplier;
-
-  if (isForwardColor==true)
-  {
-    if(next>=11) {next = 1;}
-    else {next++;}
-  }
-  else
-  {
-    if(next<=1) {next = 11;}
-    else {next--;}
-  }
-
-  if(delayTime>=delayMax) {isFaster = true;}
-  if(delayTime<=delayMin) {isFaster = false;}
+  
 }//end method
 
 void BackAndForth()
 {
+  float delayTime, delayMin, delayMax;
+  bool isFaster, isForward, isForwardColor;
+  float multiplier, multiplierFaster, multiplierSlower;
+  int next, prev;
+  char pattern[defaultCommandLength];
+  memcpy(pattern, defaultCommand, defaultCommandLength);
+  int patternLength = (sizeof(pattern));
+
+  
   delayTime = 500;
   delayMin = 1;
   delayMax = 1000;
