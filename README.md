@@ -1,10 +1,12 @@
 # RGB-Bulb-Controller
 
+Version 2.0
+
 This project allows you to use Amazon Alexa to voice-control any device that uses a standard IR remote control.  It is based on a controller I wrote for Yangcsl brand RGB light bulbs. This RGB controller serves as a viable alternative to the expensive Phillips Hue brand RGB bulbs at a fraction of the price.  Instead of WiFi modules, this project relies on cheaper RF transceivers that operate in the 2.4 GHz unlicensed band.  This allows any number of devices to be controlled within a possible area of 2 kilometers or more.
 
 ## Requirements
 
-- Rasberry Pi with Node-Red installed
+- Raspberry Pi with Node-Red installed
 
 - Arduinos (Nano, Uno, or other)
 
@@ -34,6 +36,16 @@ This project allows you to use Amazon Alexa to voice-control any device that use
 8) Receiver-Arduinos interpret the commands and output IR signals to RGB light bulbs or other devices via a connected IR LED.
 
 9) Command reaches final destination (RGB bulb or other device).  Repeat.
+
+## Future Releases
+
+- more colorful lighting patterns and modes
+
+- Smart switch control (RF433)
+
+- code refactoring
+
+- General improvements
 
 ## Created by
 
