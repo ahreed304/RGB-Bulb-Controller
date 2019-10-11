@@ -16,4 +16,4 @@ const int defaultCommandLength = sizeof(defaultCommand);
 
 const char color[] =  "ABCDEFGHIJKL";  //each letter represents a color that light bulbs can change to
 
-asd;lkjasdf;lkjasd;lkaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa
+asd;lkjasdf;lkjasd;lkaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa
