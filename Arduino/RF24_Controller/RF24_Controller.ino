@@ -15,3 +15,5 @@ const char defaultCommand[] =  "0000.0000"; //format of messages broadcast to re
 const int defaultCommandLength = sizeof(defaultCommand);
 
 const char color[] =  "ABCDEFGHIJKL";  //each letter represents a color that light bulbs can change to
+
+asd;lkjasdf;lkjasd;lkaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa
