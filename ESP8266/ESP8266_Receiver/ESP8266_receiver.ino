@@ -1,102 +1,84 @@
-
 #include <ESP8266WiFi.h>
 //#include <ESP8266WebServer.h>
 #include <ArduinoJson.h>
 #include <IRremoteESP8266.h>
 #include <IRsend.h>
 
+const char nodeName[] = "night stand 1";
+const int nodeNumber = 2;
 
 const char* ssid     = "Bikini Bottom WiFi";      // SSID of local network
 const char* password = "motowNshufflE";   // Password on network
- 
+
+//Static IP address configuration
+IPAddress staticIP(192, 168, 1, 202); //ESP static ip
+IPAddress gateway(192, 168, 1, 1);   //IP Address of your WiFi Router (Gateway)
+IPAddress subnet(255, 255, 255, 0);  //Subnet mask
+//IPAddress dns(1, 1, 1, 1);  //DNS
+const char* deviceName = "wemos2.local";
+
 int ledPin = LED_BUILTIN;
 WiFiServer server(80);
 IRsend irsend(5); 
 
-
-//The following arrays match each possible char in a payload to a specific command and a corresponding IR code. 
-//array value =             0         1         2         3         4         5         6         7         8         9         10        11        12        13        14        15        16        17        18        19                20                21              22              23              24              25
-const long IRCodes[] =     {0xFF52AD, 0xFF6897, 0xFF30CF, 0xFF38C7, 0xFF4AB5, 0xFF9867, 0xFF18E7, 0xFF5AA5, 0xFFB04F, 0xFF7A85, 0xFF10EF, 0xFF42BD, NULL,     NULL,     NULL,     0xFFA25D, 0xFFE21D, 0xFFA857, 0xFF906F, 0xFF22DD,         0xFFE01F,         0xFF629D,       NULL,           NULL,           NULL,           NULL};
-//command =                 WHITE     RED       ORANGE    GOLD      YELLOW    GREEN     TURQUOISE CYAN      BLUE      PURPLE    MAGENTA   PINK      NULL      NULL      NULL      ON        OFF       BRIGHTER  DIMMER    FLASH (LAVENDER)  SMOOTH (CRIMSON)  SPEED (INDIGO)  BRIGHTNESS 25%  BRIGHTNESS 50%  BRIGHTNESS 75%  BRIGHTNESS 100%
-
-
-//StaticJsonBuffer<200> jsonBuffer;
-char json[] = "{\"sensor\":\"gps\",\"time\":1351824120,\"data\":[48.756080,2.302038]}"; 
-
-//Static IP address configuration
-IPAddress staticIP(192, 168, 1, 200); //ESP static ip
-IPAddress gateway(192, 168, 1, 1);   //IP Address of your WiFi Router (Gateway)
-IPAddress subnet(255, 255, 255, 0);  //Subnet mask
-IPAddress dns(1, 1, 1, 1);  //DNS
-
-
-//const char* deviceName = "austino.com";
-  
-
 class IRCommand {
   public:
     long IRCode;
-    char Command[20];
-    IRCommand(long iRCode,char command[20]) {
+    String Command;
+    
+    IRCommand(long iRCode, String command) {
       IRCode = iRCode;
-      for(int i = 0; i<sizeof command; i++) {
-        Command[i] = command [i];
-      }    
+      Command = command;
     }
 };
 
-//IRCommand iRCommand;
+IRCommand white(0xFF52AD, "white");
+IRCommand red(0xFF6897, "red");
+IRCommand orange(0xFF30CF, "orange");
+IRCommand gold(0xFF38C7, "gold");
+IRCommand yellow(0xFF4AB5, "yellow");
+IRCommand green(0xFF9867, "green");
+IRCommand turquoise(0xFF18E7, "turquoise");
+IRCommand cyan(0xFF5AA5, "cyan");
+IRCommand blue(0xFFB04F, "blue");
+IRCommand purple(0xFF7A85, "purple");
+IRCommand magenta(0xFF10EF, "magenta");
+IRCommand pink(0xFF42BD, "pink");
 IRCommand powerOn(0xFFA25D, "powerOn");
 IRCommand powerOff(0xFFE21D, "powerOff");
+IRCommand brighter(0xFFA857, "brighter");
+IRCommand dimmer(0xFF906F, "dimmer");
+IRCommand flash(0xFF22DD, "flash (lavender)");
+IRCommand smooth(0xFFE01F, "smooth (crimson)");
+IRCommand speed(0xFF629D, "speed (indigo)");
+IRCommand brightness25 (NULL, "brightness 25");
+IRCommand brightness50 (NULL, "brightness 50");
+IRCommand brightness75 (NULL, "brightness 75");
+IRCommand brightness100 (NULL, "brightness 100");
+
+IRCommand commandArray[] = {white, red , orange, gold, yellow, green, turquoise, cyan, blue, purple, magenta, pink, powerOn, powerOff, brighter, dimmer, flash, smooth, speed, brightness25, brightness50, brightness75, brightness100};
 
 
-
-//
-//
-//class PowerOn {
-//  public:
-//    long IRCode = 0xFFA25D;
-//    char comnmand[] = "on";
-//};
-//
-//
-// 
-//class PowerOff {
-//  public:
-//    long IRCode = 0xFFE21D;
-//    char comnmand[] = "off";
-//};
-
-
-//sprintf(IRCode, "asdf");
-
-//   char buffer[30];
-//   sprintf(buffer, "name=pin%d&value=%d", pinNumber, value);
- 
 void setup() {
-
-//  char IRCode[20];
-//for(int i = 0; i<sizeof(IRCode); i++) {
-//  IRCode[i] = 'A';
-//}
-//  IRCode = "asdf";
-
-  Serial.begin(9600);
-  delay(10);
-  irsend.begin();
-  
- 
   pinMode(ledPin, OUTPUT);
   digitalWrite(ledPin, LOW);
  
+  
+  Serial.begin(9600);
+  delay(10);
+  irsend.begin();
+ 
+  
   // Connect to WiFi network
   Serial.println();
+  Serial.print("node number: ");
+  Serial.print(nodeNumber);
   Serial.println();
   Serial.print("Connecting to ");
   Serial.println(ssid);
 
-//  WiFi.hostname(deviceName);      // DHCP Hostname (useful for finding device for static lease)
-  WiFi.config(staticIP, subnet, gateway, dns);
+  WiFi.hostname(deviceName);      // DHCP Hostname (useful for finding device for static lease)
+  WiFi.config(staticIP, subnet, gateway);
   WiFi.begin(ssid, password);
  
   while (WiFi.status() != WL_CONNECTED) {
@@ -115,20 +97,7 @@ void setup() {
   Serial.print("http://");
   Serial.print(WiFi.localIP());
   Serial.println("/");
-
-//  IROn iROn;
-//  IROff iROff;
-//  
-//  IRCommand powerOn = new IRCommand();
-//  powerOn.IRCode = 0xFFA25D;
-//  powerOn.command = "powerOn";
-//  
-//  
-//  IRCommand powerOff = new IRCommand();
-//  powerOff.IRCode = 0xFFE21D;
-//  powerOff.command = "powerOff";
-
-Serial.println(powerOn.Command);
+  digitalWrite(ledPin, HIGH);
 }
  
 void loop() {
@@ -145,45 +114,91 @@ void loop() {
   }
  
   // Read the first line of the request
+  digitalWrite(ledPin, LOW);
   String request = client.readStringUntil('\r');
   Serial.println(request);
   client.flush();
- 
-  // Match the request
- 
-  int value = LOW;
-  if (request.indexOf("/LED=ON") != -1) {
-    digitalWrite(ledPin, LOW);
-    irsend.sendNEC(powerOn.IRCode, 32);
-  } 
-  if (request.indexOf("/LED=OFF") != -1){
-    digitalWrite(ledPin, HIGH);
-    irsend.sendNEC(powerOff.IRCode, 32);
+
+  String commandIn = getValue(request, '/', 1);
+  // int len = strlen(xval)-4;
+  commandIn.remove(commandIn.length()-5 ,5);
+  Serial.println(commandIn);
+  long IRCode = lookupIRCode(commandIn);
+  Serial.println(IRCode);
+  if(IRCode != 0)  {irsend.sendNEC(IRCode, 32);}
+  else
+  {   if(commandIn == "brightness25") {for(int y = 0; y<3; y++)  {irsend.sendNEC(dimmer.IRCode, 32);}} //BRIGHTNESS 25%   -- brightness down(x3)
+      else if(commandIn == "brightness50") {for(int y = 0; y<3; y++)  {irsend.sendNEC(dimmer.IRCode, 32);} //BRIGHTNESS 50%   -- brightness down(x3), 
+        for(int y = 0; y<1; y++)  {irsend.sendNEC(brighter.IRCode, 32);} //                 -- brightness up(x1)
+      }
+      else if(commandIn == "brightness75") {for(int y = 0; y<3; y++)  {irsend.sendNEC(dimmer.IRCode, 32);} //BRIGHTNESS 75%   -- brightness down(x3),
+        for(int y = 0; y<2; y++)  {irsend.sendNEC(brighter.IRCode, 32);} //                 -- brightness up(x2)
+      }
+      else if(commandIn == "brightness100") {for(int y = 0; y<3; y++)  {irsend.sendNEC(brighter.IRCode, 32);}} //BRIGHTNESS 100%  -- brightness up(x3)
   }
- 
- 
+//    switch(commandIn) 
+//    {          
+//      case "brightness25": for(int y = 0; y<3; y++)  {irsend.sendNEC(dimmer.IRCode, 32);} //BRIGHTNESS 25%   -- brightness down(x3)
+//                break;
+//      case "brightness50": for(int y = 0; y<3; y++)  {irsend.sendNEC(dimmer.IRCode, 32);} //BRIGHTNESS 50%   -- brightness down(x3), 
+//                for(int y = 0; y<1; y++)  {irsend.sendNEC(brighter.IRCode, 32);} //                 -- brightness up(x1)
+//                break;
+//      case "brightness75": for(int y = 0; y<3; y++)  {irsend.sendNEC(dimmer.IRCode, 32);} //BRIGHTNESS 75%   -- brightness down(x3),
+//                for(int y = 0; y<2; y++)  {irsend.sendNEC(brighter.IRCode, 32);} //                 -- brightness up(x2)
+//                break;
+//      case "brightness100": for(int y = 0; y<3; y++)  {irsend.sendNEC(brighter.IRCode, 32);} //BRIGHTNESS 100%  -- brightness up(x3)
+//                break;
+//    }
+//  }
+  irsend.sendNEC(IRCode, 32);
+  
+  char responseBody[100];
+    char commandInCharArray[commandIn.length() + 1];
+    commandIn.toCharArray(commandInCharArray, commandIn.length() +1);
+//    sprintf(responseBody, "{\"node\":{\"nodeName\":\"%s\",\"nodeNumber\":%hd},\"commandName\":\"%s\",\"ircode\":%ld}",nodeName, nodeNumber, commandInCharArray, IRCode);
+    sprintf(responseBody, "{\"nodeName\":\"%s\",\"nodeNumber\":%hd,\"command\":\"%s\",\"ircode\":%ld}",nodeName, nodeNumber, commandInCharArray, IRCode);
+
+//    sprintf(responseBody, "{\"ircode\": %ld}",IRCode);
+
+  Serial.println(responseBody);
  
   // Return the response
   client.println("HTTP/1.1 200 OK");
   client.println("Content-Type: application/json");
   client.println(""); //  do not forget this one
-//  client.println("<!DOCTYPE HTML>");
-  client.println(json);
- 
-//  client.print("Led pin is now: ");
- 
-  if(value == HIGH) {
-//    client.print("On");  
-  } else {
-//    client.print("Off");
-  }
-//  client.println("<br><br>");
-//  client.println("Click <a href=\"/LED=ON\">here</a> turn the LED on pin 5 ON<br>");
-//  client.println("Click <a href=\"/LED=OFF\">here</a> turn the LED on pin 5 OFF<br>");
-//  client.println("</html>");
+  client.println(responseBody);
+
  
   delay(1);
   Serial.println("Client disconnected");
   Serial.println("");
- 
+  digitalWrite(ledPin, HIGH);
+}
+
+
+long lookupIRCode(String command) {
+  long IRCode;
+  for(int i = 0; i<sizeof(commandArray); i++) {
+    if(command == commandArray[i].Command)  {
+      IRCode = commandArray[i].IRCode;
+      return IRCode;
+    }
+  }
+  return IRCode;
+}
+
+String getValue(String data, char separator, int index)
+{
+    int found = 0;
+    int strIndex[] = { 0, -1 };
+    int maxIndex = data.length() - 1;
+
+    for (int i = 0; i <= maxIndex && found <= index; i++) {
+        if (data.charAt(i) == separator || i == maxIndex) {
+            found++;
+            strIndex[0] = strIndex[1] + 1;
+            strIndex[1] = (i == maxIndex) ? i+1 : i;
+        }
+    }
+    return found > index ? data.substring(strIndex[0], strIndex[1]) : "";
 }
