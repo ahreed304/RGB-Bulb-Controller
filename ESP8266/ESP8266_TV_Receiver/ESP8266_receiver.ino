@@ -4,8 +4,8 @@
 #include <IRremoteESP8266.h>
 #include <IRsend.h>
 
-const int nodeNumber = 201;
-const char nodeName[] = "end table 2";
+const int nodeNumber = 210;
+const char nodeName[] = "tv";
 
 const char* ssid     = "Bikini Bottom WiFi";      // SSID of local network
 const char* password = "motowNshufflE";   // Password on network
@@ -32,35 +32,27 @@ class IRCommand {
     }
 };
 
-IRCommand white(0xFF52AD, "white");
-IRCommand red(0xFF6897, "red");
-IRCommand orange(0xFF30CF, "orange");
-IRCommand gold(0xFF38C7, "gold");
-IRCommand yellow(0xFF4AB5, "yellow");
-IRCommand green(0xFF9867, "green");
-IRCommand turquoise(0xFF18E7, "turquoise");
-IRCommand cyan(0xFF5AA5, "cyan");
-IRCommand blue(0xFFB04F, "blue");
-IRCommand purple(0xFF7A85, "purple");
-IRCommand magenta(0xFF10EF, "magenta");
-IRCommand pink(0xFF42BD, "pink");
-IRCommand powerOn(0xFFA25D, "powerOn");
-IRCommand powerOff(0xFFE21D, "powerOff");
-IRCommand brighter(0xFFA857, "brighter");
-IRCommand dimmer(0xFF906F, "dimmer");
-IRCommand flash(0xFF22DD, "flash (lavender)");
-IRCommand smooth(0xFFE01F, "smooth (crimson)");
-IRCommand speed(0xFF629D, "speed (indigo)");
-IRCommand brightness25 (1, "brightness25");
-IRCommand brightness50 (1, "brightness50");
-IRCommand brightness75 (1, "brightness75");
-IRCommand brightness100 (1, "brightness100");
+IRCommand tvPower(0xA90, "tvPower");
+IRCommand volumeDown(0xC90, "");
+IRCommand volumeUp(0x490, "");
+IRCommand mute(0x290, "mute");
+IRCommand input(0xA50, "input");
 
-IRCommand commandArray[] = {white, red , orange, gold, yellow, green, turquoise, cyan, blue, purple, magenta, pink, powerOn, powerOff, brighter, dimmer, flash, smooth, speed, brightness25, brightness50, brightness75, brightness100};
+IRCommand up(0x2F0, "up");
+IRCommand down(0xAF0, "down");
+IRCommand left(0x2D0, "left");
+IRCommand right(0xCD0, "right");
+IRCommand enter(0xA70, "enter");
 
-char http[] = "HTTP/1.1";
-char notFound404[] = "HTTP/1.1 404 NOT FOUND";
-char ok200[] = "HTTP/1.1 200 OK";
+IRCommand hdmi1(0x930, "hdmi1");
+IRCommand hdmi2(1, "hdmi2");
+IRCommand hdmi3(1, "hdmi3");
+IRCommand volumeUp10(1, "volumeUp");
+IRCommand volumeDown10(1, "volumeDown");
+
+
+ 
+IRCommand commandArray[] = {tvPower, volumeDown, volumeUp, mute, input, up, down, left, right, enter, hdmi1, hdmi2, hdmi3, volumeUp10, volumeDown10};
 
 char responseBody[200];
 int responseStatus;
@@ -107,6 +99,7 @@ void setup() {
 }
 
 void loop() {
+  long IRCode = 0;
   sprintf(responseBody, "");
   responseStatus = 500;
 
@@ -127,54 +120,39 @@ void loop() {
   String request = client.readStringUntil('\r');
   Serial.println(request);
   client.flush();
-
+  
   String commandIn = getValue(request, '/', 1);
   // int len = strlen(xval)-4;
   commandIn.remove(commandIn.length() - 5 , 5);
   Serial.println(commandIn);
-  long IRCode = lookupIRCode(commandIn);
+  IRCode = lookupIRCode(commandIn);
   Serial.println(IRCode);
 
   if (IRCode != 1  && IRCode != NULL)  {
-    irsend.sendNEC(IRCode, 32);
+    sendIR(IRCode);
   }
   else if (IRCode == 1) {
-    if (commandIn == "brightness25") {
-      for (int y = 0; y < 3; y++)  {
-        irsend.sendNEC(dimmer.IRCode, 32);
-      }// end for
+    
+    if (commandIn == "hdmi2") {
+      executeHdmi2();
     }//end if
-    else if (commandIn == "brightness50") {
-      for (int y = 0; y < 3; y++)  {
-        irsend.sendNEC(dimmer.IRCode, 32);
-      }//end for
-      for (int y = 0; y < 1; y++)  {
-        irsend.sendNEC(brighter.IRCode, 32);
-      }//end for
-    }//end else if
-    else if (commandIn == "brightness75") {
-      for (int y = 0; y < 3; y++)  {
-        irsend.sendNEC(dimmer.IRCode, 32);
-      }//end for
-      for (int y = 0; y < 2; y++)  {
-        irsend.sendNEC(brighter.IRCode, 32);
-      }//end for
-    }//end else if
-    else if (commandIn == "brightness100") {
-      for (int y = 0; y < 3; y++)  {
-        irsend.sendNEC(brighter.IRCode, 32);
-      }//end for
-    }//end else if
+    else if (commandIn == "hdmi3") {
+      executeHdmi3();
+    }
+    else if (commandIn == "volumeUp") {
+      executeVolumeUp10();
+    }
+    else if (commandIn == "volumeDown") {
+      executeVolumeDown10();
+    }
   }//end else if
 
 
-
-
   if (IRCode == NULL) {
-    sprintf(responseBody, "{\"error\":\"command not found\"}");
-    responseStatus = 404;
+    sprintf(responseBody, "{\"error\":\"internal server error\"}");
+    responseStatus = 500;
   }
-  else {
+  else {  
     responseStatus = 200;
     char commandInCharArray[commandIn.length() + 1];
     commandIn.toCharArray(commandInCharArray, commandIn.length() + 1);
@@ -183,8 +161,20 @@ void loop() {
 
     //    sprintf(responseBody, "{\"ircode\": %ld}",IRCode);
   }
+
+  respond(client, responseStatus, responseBody);
+
+  
   Serial.println(responseBody);
 
+  
+  Serial.println("Client disconnected");
+  Serial.println("");
+  digitalWrite(ledPin, HIGH);
+}
+
+
+void respond(WiFiClient client, int responseStatus, char responseBody[])  {
   // Return the response
   switch (responseStatus) {
     default :
@@ -198,11 +188,7 @@ void loop() {
 
 
   delay(1);
-  Serial.println("Client disconnected");
-  Serial.println("");
-  digitalWrite(ledPin, HIGH);
 }
-
 
 long lookupIRCode(String command) {
   long IRCode;
@@ -229,4 +215,40 @@ String getValue(String data, char separator, int index)
     }
   }
   return found > index ? data.substring(strIndex[0], strIndex[1]) : "";
+}
+
+void sendIR(long IRCode) {
+    irsend.sendSony(IRCode, 12);
+    delay(100);
+}
+
+void executeHdmi2()  {
+  sendIR(input.IRCode);
+  delay(500);
+  for(int i = 0; i<6; i++) {
+    sendIR(down.IRCode);
+  }
+  sendIR(up.IRCode);
+  sendIR(enter.IRCode);
+}
+
+void executeHdmi3()  {
+  sendIR(input.IRCode);
+  delay(500);
+  for(int i = 0; i<6; i++) {
+    sendIR(down.IRCode);
+  }
+  sendIR(enter.IRCode);
+}
+
+void executeVolumeUp10()  {
+  for(int i = 0; i<10; i++) {
+    sendIR(volumeUp.IRCode);
+  }
+}
+
+void executeVolumeDown10()  {
+  for(int i = 0; i<10; i++) {
+    sendIR(volumeDown.IRCode);
+  }
 }
