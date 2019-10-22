@@ -15,11 +15,23 @@ IPAddress staticIP(192, 168, 1, nodeNumber); //ESP static ip
 IPAddress gateway(192, 168, 1, 1);   //IP Address of your WiFi Router (Gateway)
 IPAddress subnet(255, 255, 255, 0);  //Subnet mask
 //IPAddress dns(1, 1, 1, 1);  //DNS
-const char* deviceName = "wemos";
+const char *deviceName = "wemos";
 
 int ledPin = LED_BUILTIN;
 WiFiServer server(80);
 IRsend irsend(5);
+
+//class Response  {
+//  public:
+//    char ResponseBody[300];
+//    int ResponseStatus;
+//
+//    Response(char responseBody[200], int responseStatus)  {
+//      sprintf(ResponseBody, responseBody);
+//      ResponseStatus = responseStatus;
+//    }
+//};
+
 
 class IRCommand {
   public:
@@ -54,7 +66,8 @@ IRCommand volumeDown10(1, "volumeDown");
  
 IRCommand commandArray[] = {tvPower, volumeDown, volumeUp, mute, input, up, down, left, right, enter, hdmi1, hdmi2, hdmi3, volumeUp10, volumeDown10};
 
-char responseBody[200];
+char responseBody[300];
+
 int responseStatus;
 
 void setup() {
@@ -99,16 +112,72 @@ void setup() {
 }
 
 void loop() {
-  long IRCode = 0;
-  sprintf(responseBody, "");
-  responseStatus = 500;
-
   // Check if a client has connected
   WiFiClient client = server.available();
   if (!client) {
     return;
   }
+  
+  long IRCode = 0;
+  sprintf(responseBody, "");
+  responseStatus = 500;
 
+              
+  String request = recieveRequest(client);
+  String command = interpretRequest(request);
+  IRCode = lookupIRCode(command);
+  Serial.println(IRCode);
+
+  executeCommand(command, IRCode);
+
+
+  if (IRCode == NULL) {
+    sprintf(responseBody, "{\"error\":\"internal server error\"}");
+    responseStatus = 500;
+  }
+  else {  
+    responseStatus = 200;
+    char commandCharArray[command.length() + 1];
+    command.toCharArray(commandCharArray, command.length() + 1);
+    sprintf(responseBody, "{\"node\":{\"nodeNumber\":%hd,\"nodeName\":\"%s\"},\"command\":{\"commandName\":\"%s\",\"ircode\":%ld}}", nodeNumber, nodeName, commandCharArray, IRCode);
+  }
+
+  respond(client, responseStatus, responseBody);
+}//end loop-------------------------------------------------------------------------
+
+void executeCommand(String command, long IRCode) {
+  
+  if (IRCode != 1  && IRCode != NULL)  {
+    sendIR(IRCode);
+  }
+  else if (IRCode == 1) {
+    
+    if (command == "hdmi2") {
+      executeHdmi2();
+    }//end if
+    else if (command == "hdmi3") {
+      executeHdmi3();
+    }
+    else if (command == "volumeUp") {
+      executeVolumeUp10();
+    }
+    else if (command == "volumeDown") {
+      executeVolumeDown10();
+    }
+  }//end else if
+}
+
+
+String interpretRequest(String request) {
+  String command = getValue(request, '/', 1);
+  // int len = strlen(xval)-4;
+  command.remove(command.length() - 5 , 5);
+  Serial.println(command);
+  return command;
+}
+
+
+String recieveRequest(WiFiClient client)  {
   // Wait until the client sends some data
   Serial.println("new client");
   while (!client.available()) {
@@ -120,59 +189,8 @@ void loop() {
   String request = client.readStringUntil('\r');
   Serial.println(request);
   client.flush();
-  
-  String commandIn = getValue(request, '/', 1);
-  // int len = strlen(xval)-4;
-  commandIn.remove(commandIn.length() - 5 , 5);
-  Serial.println(commandIn);
-  IRCode = lookupIRCode(commandIn);
-  Serial.println(IRCode);
-
-  if (IRCode != 1  && IRCode != NULL)  {
-    sendIR(IRCode);
-  }
-  else if (IRCode == 1) {
-    
-    if (commandIn == "hdmi2") {
-      executeHdmi2();
-    }//end if
-    else if (commandIn == "hdmi3") {
-      executeHdmi3();
-    }
-    else if (commandIn == "volumeUp") {
-      executeVolumeUp10();
-    }
-    else if (commandIn == "volumeDown") {
-      executeVolumeDown10();
-    }
-  }//end else if
-
-
-  if (IRCode == NULL) {
-    sprintf(responseBody, "{\"error\":\"internal server error\"}");
-    responseStatus = 500;
-  }
-  else {  
-    responseStatus = 200;
-    char commandInCharArray[commandIn.length() + 1];
-    commandIn.toCharArray(commandInCharArray, commandIn.length() + 1);
-    sprintf(responseBody, "{\"node\":{\"nodeNumber\":%hd,\"nodeName\":\"%s\"},\"command\":{\"commandName\":\"%s\",\"ircode\":%ld}}", nodeNumber, nodeName, commandInCharArray, IRCode);
-    //    sprintf(responseBody, "{\"nodeName\":\"%s\",\"nodeNumber\":%hd,\"command\":\"%s\",\"ircode\":%ld}",nodeName, nodeNumber, commandInCharArray, IRCode);
-
-    //    sprintf(responseBody, "{\"ircode\": %ld}",IRCode);
-  }
-
-  respond(client, responseStatus, responseBody);
-
-  
-  Serial.println(responseBody);
-
-  
-  Serial.println("Client disconnected");
-  Serial.println("");
-  digitalWrite(ledPin, HIGH);
+  return request;
 }
-
 
 void respond(WiFiClient client, int responseStatus, char responseBody[])  {
   // Return the response
@@ -185,9 +203,11 @@ void respond(WiFiClient client, int responseStatus, char responseBody[])  {
   client.println("Content-Type: application/json");
   client.println(""); //  do not forget this one
   client.println(responseBody);
-
-
   delay(1);
+  Serial.println("Client disconnected");
+  Serial.println("");
+  Serial.println(responseBody);
+  digitalWrite(ledPin, HIGH);
 }
 
 long lookupIRCode(String command) {
