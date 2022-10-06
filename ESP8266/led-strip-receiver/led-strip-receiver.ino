@@ -3,6 +3,7 @@
 #include <ArduinoJson.h>
 //#include <IRremoteESP8266.h>
 //#include <IRsend.h>
+#include <stdlib.h>
 
 
 
@@ -49,8 +50,8 @@ void TurnOff() {
 const int nodeNumber = 231;
 const char nodeName[] = "living room light strip";
 
-const char* ssid     = "Bikini Bottom WiFi";      // SSID of local network
-const char* password = "motowNshufflE";   // Password on network
+const char* ssid     = "";      // SSID of local network
+const char* password = "";   // Password on network
 
 //Static IP address configuration
 IPAddress staticIP(192, 168, 1, nodeNumber); //ESP static ip
@@ -122,9 +123,9 @@ void setup() {
    pinMode(GREEN_LED, OUTPUT);
    pinMode(RED_LED, OUTPUT);
    pinMode(BLUE_LED, OUTPUT);
-   TurnOn();
-   delay(5000);
-   TurnOff();
+//   TurnOn();
+//   delay(5000);
+//   TurnOff();
 //  
 //  pinMode(RED, OUTPUT);
 //  digitalWrite(RED, HIGH);
@@ -205,7 +206,7 @@ void loop() {
   // int len = strlen(xval)-4;
   commandIn.remove(commandIn.length() - 5 , 5);
   Serial.println(commandIn);
-
+  displayColor(commandIn);
 //  if (IRCode == NULL) {
   if (false) {
     sprintf(responseBody, "{\"error\":\"command not found\"}");
@@ -243,6 +244,18 @@ void loop() {
   if (commandIn == "reset") { resetDevice(); }
 }
 
+void displayColor(String hexCode) {
+  displayPrimaryColor(hexCode.substring(0, 2), RED_LED);
+  displayPrimaryColor(hexCode.substring(2, 4), GREEN_LED);
+  displayPrimaryColor(hexCode.substring(4, 6), BLUE_LED);
+  Serial.println(hexCode);
+}
+
+void displayPrimaryColor(String hexCodeFragment, int ledPin) {
+  unsigned long int outputValue = strtoul(hexCodeFragment.c_str(), NULL, 16);
+  Serial.println(hexCodeFragment);
+  analogWrite(ledPin, outputValue);
+}
 long lookupIRCode(String command) {
   long IRCode;
   for (int i = 0; i < sizeof(commandArray); i++) {
