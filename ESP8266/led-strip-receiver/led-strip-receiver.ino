@@ -186,15 +186,11 @@ void loop() {
 
   // Check if a client has connected
   WiFiClient client = server.available();
-  if (!client) {
-    return;
-  }
+  if (!client) { return; }
 
   // Wait until the client sends some data
   Serial.println("new client");
-  while (!client.available()) {
-    delay(1);
-  }
+  while (!client.available()) { delay(1); }
 
   // Read the first line of the request
   digitalWrite(ledPin, LOW);
@@ -206,7 +202,8 @@ void loop() {
   // int len = strlen(xval)-4;
   commandIn.remove(commandIn.length() - 5 , 5);
   Serial.println(commandIn);
-  displayColor(commandIn);
+  responseStatus = handleRequest(commandIn)
+  // displayColor(commandIn);
 //  if (IRCode == NULL) {
   if (false) {
     sprintf(responseBody, "{\"error\":\"command not found\"}");
@@ -244,6 +241,10 @@ void loop() {
   if (commandIn == "reset") { resetDevice(); }
 }
 
+void handleRequest(String commandIn) {
+  
+}
+
 void displayColor(String hexCode) {
   displayPrimaryColor(hexCode.substring(0, 2), RED_LED);
   displayPrimaryColor(hexCode.substring(2, 4), GREEN_LED);
@@ -267,7 +268,7 @@ long lookupIRCode(String command) {
   return NULL;
 }
 
-
+// TODO: comment/refactor to illuminate what this function does
 String getValue(String data, char separator, int index)
 {
   int found = 0;
