@@ -1,5 +1,6 @@
 // TODO: replace request parsing code with code from original controller
-
+// This is not the main file.  Refer to led-strip-receiver.ino for latest version.
+// This is just a scratch file now with some useful reference code
 
 #include <ESP8266WiFi.h>
 //#include <ESP8266WebServer.h>
